@@ -1,38 +1,71 @@
 .App {
   text-align: center;
-}
-
-.App-logo {
-  height: 40vmin;
-  pointer-events: none;
-}
-
-@media (prefers-reduced-motion: no-preference) {
-  .App-logo {
-    animation: App-logo-spin infinite 20s linear;
-  }
-}
-
-.App-header {
-  background-color: #282c34;
-  min-height: 100vh;
-  display: flex;
+  background-color: rgb(195, 0, 255);
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  font-size: calc(10px + 2vmin);
-  color: white;
+  height: 100vh;
+  padding: 100px;
 }
 
-.App-link {
-  color: #61dafb;
+
+.card{
+  border-radius: 0%;
+  padding: 1em;
 }
 
-@keyframes App-logo-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
+.buttonText{
+  position: relative;
+  padding: 5px;
+  background-color: transparent;
+  display: inline-block;
+  margin: 3px;
+  outline: none;
+  border: none;
+  font-size: 1em;
+  color: black;
+  cursor: pointer;
+}
+
+.buttonTextRed{
+  position: relative;
+  padding: 5px;
+  background-color: transparent;
+  display: inline-block;
+  margin: 3px;
+  outline: none;
+  border: none;
+  font-size: 1em;
+  color: red;
+  cursor: pointer;
+}
+
+.cardMainContent{
+  flex: content;
+  flex-direction: column;
+}
+
+.cardContent{
+  display: flex;
+  flex-wrap: wrap;
+  min-height: max-content;
+  padding: 10px;
+  margin-top: 50px;
+  
+}
+.CardContentLeft{
+  float: left;
+  width: 50%;
+}
+
+.CardContentRight{
+  float: right;
+  width: 50%;
+}
+
+.buttonContainer{
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  margin-top: 20px;
 }
