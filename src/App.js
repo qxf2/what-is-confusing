@@ -1,63 +1,64 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import "./App.css";
 import Card from "@material-ui/core/Card";
 import CardActions from "@material-ui/core/CardActions";
 import CardContent from "@material-ui/core/CardContent";
 import Button from "@material-ui/core/Button";
 import { CountdownCircleTimer } from "react-countdown-circle-timer";
+import axios from "axios";
 
-const dataset = [
-  {
-    id: 1,
-    sentence:
-      "This is the test data for checking the highlighter for each word in this sentence",
-    timer: 40,
+const api = axios.create({
+  baseURL: "http://127.0.0.1:5000/",
+  headers: {
+    "access-control-allow-origin": "*",
   },
-  {
-    id: 2,
-    sentence:
-      "This is the test data 2 for checking the highlighter for each word from the second sentence",
-    timer: 70,
-  },
-  {
-    id: 3,
-    sentence:
-      "This is the test data 3 for checking the highlighter sentence from the third sentence",
-    timer: 10,
-  },
-];
-
-const num = Math.floor(Math.random() * 3);
+});
 
 export const App = () => {
-  const [red, setRed] = useState(false);
   const [enabled, setEnabled] = useState(false);
-  const [markedWord, setMarkedWord] = useState(null);
   const [markedWords, setMarkedWords] = useState([]);
   const [markedWordsId, setMarkedWordsId] = useState([]);
   const [inputText, setInputText] = useState(null);
   const [isPlaying, setIsPlaying] = useState(true);
-  const [indexId, setIndexId] = useState(-1);
 
-  const data = dataset[num];
+  const [data, setData] = useState({
+    id: "",
+    sentence: "",
+    timer: 0,
+  });
 
-  var time = 0;
+  // Similar to componentDidMount and componentDidUpdate:
+  useEffect(() => {
+    // Update the document title using the browser API
+    getData();
+  }, [setData]);
+
+  function getData() {
+    api.get("message").then((res) => {
+      let response = res.data;
+      console.log(response);
+      setData({
+        id: response.id,
+        sentence: response.sentence,
+        timer: response.timer,
+      });
+    });
+  }
+
+  let time = 0;
+  function handleTimer(et) {
+    time = parseInt(et);
+  }
 
   function handleClick(index, value) {
     markedWords.push(value);
     markedWordsId.push(index);
+    //setMarkedWords(...markedWords,value);
+    //setMarkedWordsId(...markedWordsId, index);
 
     if (markedWords.length >= 3) {
-      setRed(true);
       setEnabled(true);
-      setIndexId(index);
     }
-
-    setMarkedWord(value);
-  }
-
-  function handleTimer(et) {
-    time = et;
   }
 
   const handleChange = (e) => {
@@ -81,70 +82,89 @@ export const App = () => {
     window.location.reload(false);
   }
 
-  return (
-    <div className="App">
-      <Card className="card">
-        <CardContent>
-          {data.sentence.split(" ").map(function (char, index) {
-            return (
-              <Button
-                className="buttonText"
-                value={(char, index)}
-                key={index}
-                onClick={() => handleClick(index, char)}
-                disabled={enabled}
-              >
-                {markedWordsId.includes(index) ? (
-                  <span style={{ color: "red" }}>{char}</span>
-                ) : (
-                  <span style={{ color: "black" }}>{char}</span>
-                )}
-              </Button>
-            );
-          })}
-          <div className="cardContent">
-            <div className="CardContentLeft">
-              <textarea
-                className="form-control"
-                id="Textarea"
-                placeholder="Insert your thoughts"
-                style={{ minWidth: 250 }}
-                onChange={handleChange}
-                disabled={!isPlaying}
-                rows="8"
-              />
+  if (data.timer > 0) {
+    return (
+      <div className="App">
+        <Card className="card">
+          <CardContent>
+            {data.sentence.split(" ").map(function (char, index) {
+              return (
+                <Button
+                  className="buttonText"
+                  value={(char, index)}
+                  key={index}
+                  onClick={() => handleClick(index, char)}
+                  disabled={enabled}
+                >
+                  {markedWordsId.includes(index) ? (
+                    <span style={{ color: "red" }}>{char}</span>
+                  ) : (
+                    <span style={{ color: "black" }}>{char}</span>
+                  )}
+                </Button>
+              );
+            })}
+
+            <div className="cardContent">
+              <div className="CardContentLeft">
+                <textarea
+                  className="form-control"
+                  id="Textarea"
+                  placeholder="Insert your thoughts"
+                  style={{ minWidth: 250 }}
+                  onChange={handleChange}
+                  disabled={!isPlaying}
+                  rows="8"
+                />
+              </div>
+              <div className="CardContentRight">
+                <CountdownCircleTimer
+                  onComplete={() => {
+                    // do your stuff here
+                    setEnabled(true);
+                    return [false, 0];
+                  }}
+                  isPlaying={isPlaying}
+                  duration={data.timer}
+                  size={130}
+                  colors={[
+                    ["#004777", 0.33],
+                    ["#F7B801", 0.33],
+                    ["#A30000", 0.33],
+                  ]}
+                  renderAriaTime={({ remainingTime, elapsedTime }) =>
+                    handleTimer(elapsedTime)
+                  }
+                >
+                  {({ remainingTime }) => remainingTime}
+                </CountdownCircleTimer>
+              </div>
             </div>
-            <div className="CardContentRight">
-              <CountdownCircleTimer
-                onComplete={() => {
-                  // do your stuff here
-                  setEnabled(true);
-                  return [false, 0]; // repeat if true animation in 1.5
-                }}
-                isPlaying={isPlaying}
-                duration={data.timer}
-                size={130}
-                colors={[
-                  ["#004777", 0.33],
-                  ["#F7B801", 0.33],
-                  ["#A30000", 0.33],
-                ]}
-                renderAriaTime={({ remainingTime, elapsedTime }) =>
-                  handleTimer(elapsedTime)
-                }
-              >
-                {({ remainingTime }) => remainingTime}
-              </CountdownCircleTimer>
+          </CardContent>
+          <CardActions className="buttonContainer">
+            <Button onClick={() => onSubmit()}>submit</Button>
+            <Button onClick={() => onRestart()}>Shuffle and Restart</Button>
+          </CardActions>
+        </Card>
+      </div>
+    );
+  } else {
+    return (
+      <div className="App">
+        <Card className="card">
+          <CardContent>
+            <div>
+              <h3>There is no data</h3>
             </div>
-          </div>
-        </CardContent>
-        <CardActions className="buttonContainer">
-          <Button onClick={() => onSubmit()}>submit</Button>
-          <Button onClick={() => onRestart()}>Shuffle and Restart</Button>
-        </CardActions>
-      </Card>
-    </div>
-  );
+          </CardContent>
+          <CardActions className="buttonContainer">
+            <Button onClick={() => onSubmit()}>submit</Button>
+            <Button onClick={() => onRestart()}>Shuffle and Restart</Button>
+          </CardActions>
+        </Card>
+      </div>
+    );
+  }
 };
 
 export default App;
