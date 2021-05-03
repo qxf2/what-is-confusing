@@ -11,6 +11,7 @@ const api = axios.create({
   baseURL: "http://127.0.0.1:5000/",
   headers: {
     "access-control-allow-origin": "*",
+    "Content-Type": "application/json",
   },
 });
 
@@ -34,7 +35,7 @@ export const App = () => {
   }, [setData]);
 
   function getData() {
-    api.get("message").then((res) => {
+    api.get("question").then((res) => {
       let response = res.data;
       console.log(response);
       setData({
@@ -51,13 +52,9 @@ export const App = () => {
   }
 
   function handleClick(index, value) {
-    markedWords.push(value);
-    markedWordsId.push(index);
-    //setMarkedWords(...markedWords,value);
-    //setMarkedWordsId(...markedWordsId, index);
-
-    if (markedWords.length >= 3) {
-      setEnabled(true);
+    if (!markedWords.includes(value)) {
+      setMarkedWords([...markedWords, value]);
+      setMarkedWordsId([...markedWordsId, index]);
     }
   }
 
@@ -68,14 +65,18 @@ export const App = () => {
 
   function onSubmit() {
     setIsPlaying(false);
-    let dataOut = {
+    let randomUser = Math.floor(Math.random() * 3) + 1;
+    let postBody = {
       id: data.id,
       markedWords: markedWords,
       inputText: inputText,
       timeSpent: time,
+      userId: randomUser,
     };
 
-    console.log("Data Out : ", dataOut);
+    api.post("answered", JSON.stringify(postBody)).then((res) => {
+      if (res.status === 200) console.log(res.data);
+    });
   }
 
   function onRestart() {
@@ -120,8 +121,8 @@ export const App = () => {
               <div className="CardContentRight">
                 <CountdownCircleTimer
                   onComplete={() => {
-                    // do your stuff here
                     setEnabled(true);
+                    setIsPlaying(false);
                     return [false, 0];
                   }}
                   isPlaying={isPlaying}
@@ -158,7 +159,9 @@ export const App = () => {
             </div>
           </CardContent>
           <CardActions className="buttonContainer">
-            <Button onClick={() => onSubmit()}>submit</Button>
+            <Button disabled={true} onClick={() => onSubmit()}>
+              submit
+            </Button>
             <Button onClick={() => onRestart()}>Shuffle and Restart</Button>
           </CardActions>
         </Card>
